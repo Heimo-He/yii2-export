@@ -23,13 +23,15 @@
     }
   ],
   "require": {
-    "mpdf/mpdf": "<7.0"
+    "mpdf/mpdf": "<7.0",
+    "phpoffice/phpexcel": "*"
   },
   "autoload": {
     "psr-4": {
       "riskivy\\export\\": "",
       "riskivy\\export\\mpdf\\": "mpdf",
-      "riskivy\\export\\mdocx\\": "mdocx"
+      "riskivy\\export\\mdocx\\": "mdocx",
+      "riskivy\\export\\mexcel\\": "mexcel"
     }
   },
   "extra": {

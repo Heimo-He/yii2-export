@@ -6,6 +6,7 @@
  */
 namespace riskivy\export\mdocx;
 
+use Yii;
 use riskivy\export\mdocx\RepeatRowException;
 use riskivy\export\mdocx\KeyNode;
 use riskivy\export\mdocx\RepeatParagraphException;
@@ -18,6 +19,9 @@ class DocxTemplate {
     private $slNoKey = "slNo";
     private $locale = "en_IN";
     private $logFile = null;
+    private $tplPath = "@common/views/docx/";
+    private $outPath = "@common/views/docx/";
+    private $ext = ".docx";
 
     // for internal Use
     private $workingDir = null;
@@ -26,6 +30,7 @@ class DocxTemplate {
     private $development = false;
     
     function __construct($templatePath){
+        $templatePath = empty($this->tplPath.$templatePath.$this->ext) ? '' : Yii::getAlias($this->tplPath.$templatePath.$this->ext);
         if(!file_exists($templatePath)){
             throw new \Exception("Invalid Template Path");
         }
@@ -123,6 +128,7 @@ class DocxTemplate {
         $zip->close();
 
         //once merged file is available copy it to $outputPath or write as downloadable file
+        $outputPath = empty($this->outPath.$outputPath.$this->ext) ? '' : Yii::getAlias($this->outPath.$outputPath.$this->ext);
         if($download == false){
             copy($mergedFile,$outputPath);
         }else{
@@ -700,12 +706,13 @@ class DocxTemplate {
         return $keys;
     }
 
-    private function log($level,$message){
-        if(isset($this->logFile)){
-            error_log($message,3,$this->logFile);
-        }else{
-            error_log($message);
-        }
+    /**
+     * 日志记录
+     * @param $level
+     * @param $message
+     */
+    private function log($level, $message){
+        Yii::getLogger()->log($message, $level);
     }
 
     private function startsWith($haystack, $needle) {
