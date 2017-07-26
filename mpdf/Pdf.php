@@ -1,12 +1,12 @@
 <?php
 
 /**
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014 - 2017
+ * @copyright Copyright &copy; Riskivy Visweswaran, Tophant.com, 2014 - 2017
  * @package yii2-mpdf
  * @version 1.0.2
  */
 
-namespace kartik\mpdf;
+namespace riskivy\export\mpdf;
 
 use Mpdf\Mpdf;
 use Yii;
@@ -19,7 +19,7 @@ use yii\base\InvalidParamException;
  * configuration of how the PDF document is generated and how it should be delivered to the user. This component uses
  * the [[Mpdf]] library and includes various additional enhancements specifically for the Yii2 framework.
  *
- * @author Kartik Visweswaran <kartikv2@gmail.com>
+ * @author Riskivy Visweswaran <jack.hu@tophant.com>
  * @since 1.0
  */
 class Pdf extends Component
