@@ -582,9 +582,8 @@ class Excel extends Widget
     public function writeFile($sheet)
     {
         $objectwriter = \PHPExcel_IOFactory::createWriter($sheet, $this->format);
-        var_dump($objectwriter);
-        exit();
         $path = 'php://output';
+
         if (isset($this->savePath) && $this->savePath != null) {
             if(!file_exists($this->savePath . '/excel/')){
                 mkdir($this->savePath . '/excel/');
