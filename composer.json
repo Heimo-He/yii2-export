@@ -31,7 +31,8 @@
       "riskivy\\export\\": "",
       "riskivy\\export\\mpdf\\": "mpdf",
       "riskivy\\export\\mdocx\\": "mdocx",
-      "riskivy\\export\\mexcel\\": "mexcel"
+      "riskivy\\export\\mexcel\\": "mexcel",
+      "riskivy\\export\\mzip\\": "mzip"
     }
   },
   "extra": {
