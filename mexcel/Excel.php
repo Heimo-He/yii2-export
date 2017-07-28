@@ -7,6 +7,7 @@ use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
 use yii\i18n\Formatter;
 use yii\base\Widget;
+use riskivy\export\mzip\Zip;
 
 /**
  * Excel Widget for generate Excel File or for load Excel File.
@@ -274,6 +275,10 @@ class Excel extends Widget
      */
     public $asAttachment = true;
     /**
+     * @var boolean to set the file excel to download mode.
+     */
+    public $asZip = false;
+    /**
      * @var boolean to set the first record on excel file to a keys of array per line.
      * If you want to set the keys of record column with first record, if it not set, the header with use the alphabet column on excel.
      */
@@ -320,6 +325,7 @@ class Excel extends Widget
     public function init()
     {
         parent::init();
+        $this->savePath = Yii::$app->getRuntimePath();
         if ($this->formatter == null) {
             $this->formatter = \Yii::$app->getFormatter();
         } elseif (is_array($this->formatter)) {
@@ -583,13 +589,6 @@ class Excel extends Widget
     {
         $objectwriter = \PHPExcel_IOFactory::createWriter($sheet, $this->format);
         $path = 'php://output';
-
-        if (isset($this->savePath) && $this->savePath != null) {
-            if(!file_exists($this->savePath . '/excel/')){
-                mkdir($this->savePath . '/excel/');
-            }
-            $path = $this->savePath . '/excel/' . $this->getFileName();
-        }
         $objectwriter->save($path);
         exit();
     }
@@ -743,7 +742,41 @@ class Excel extends Widget
                 unset($line);
             }
             $this->setFputcsv();
+
+            if ($this->asZip){
+                $savePath = $this->getSavePath('', true);
+                $zipPath = $savePath . $this->fileName . '.zip';
+
+                if(file_exists($zipPath)){
+                    unlink($zipPath);
+                }
+
+                $zip = Zip::create($zipPath);
+                $zip->add($savePath);
+                $zip->close();
+
+                $this->delTree($savePath . $this->fileName);
+
+                return $zipPath;
+            }
         }
+    }
+
+    /**
+     * rm dir as zip
+     * @param string $dir
+     * @return bool
+     */
+    private function delTree($dir = '') {
+        if(empty($dir)){
+            return false;
+        }
+
+        $files = array_diff(scandir($dir), array('.','..'));
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? delTree("$dir/$file") : unlink("$dir/$file");
+        }
+        return rmdir($dir);
     }
 
     /**
@@ -767,13 +800,18 @@ class Excel extends Widget
     /**
      * Get the file save path
      * @param string $pagePath
+     * @param bool $isZip
      * @return string
      */
-    public function getSavePath($pagePath = '')
+    public function getSavePath($pagePath = '', $isZip = false)
     {
         $savePath = 'php://output';
         if (isset($this->savePath) && $this->savePath != null) {
-            $path = $this->savePath . '/excel/'. date('Y-m-d', time()) . '/';
+            $path = $this->savePath . '/excel/'. date('Y-m-d', time()) . '/' . $this->fileName . '/';
+
+            if($isZip){
+                return $this->savePath . '/excel/'. date('Y-m-d', time()) . '/';
+            }
 
             if(!file_exists($path)){
                 mkdir($path);
