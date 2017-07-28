@@ -6,6 +6,7 @@ use yii\helpers\ArrayHelper;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
 use yii\i18n\Formatter;
+use yii\base\Widget;
 
 /**
  * Excel Widget for generate Excel File or for load Excel File.
@@ -220,7 +221,7 @@ use yii\i18n\Formatter;
  * @copyright 2014
  * @since 1
  */
-class Excel extends \yii\base\Widget
+class Excel extends Widget
 {
     /**
      * @var string mode is an export mode or import mode. valid value are 'export' and 'import'.
@@ -253,13 +254,17 @@ class Excel extends \yii\base\Widget
      */
     public $fileName;
     /**
+     * @var string|array name for file ext to export or save.
+     */
+    public $ext = '.csv';
+    /**
      * @var string save path is a directory to save the file or you can blank this to set the file as attachment.
      */
     public $savePath;
     /**
      * @var string format for excel to export. Valid value are 'Excel5','Excel2007','Excel2003XML','00Calc','Gnumeric'.
      */
-    public $format;
+    public $format = 'CSV';
     /**
      * @var boolean to set the title column on the first line.
      */
@@ -299,6 +304,14 @@ class Excel extends \yii\base\Widget
      * instance. If this property is not set, the "formatter" application component will be used.
      */
     public $formatter;
+    /**
+     * @var object to export.
+     */
+    public $out;
+    /**
+     * @var split export quantity.
+     */
+    public $limit;
 
     /**
      * (non-PHPdoc)
@@ -319,6 +332,10 @@ class Excel extends \yii\base\Widget
 
     /**
      * Setting data from models
+     * @param null $activeSheet
+     * @param $models
+     * @param array $columns
+     * @param array $headers
      */
     public function executeColumns(&$activeSheet = null, $models, $columns = [], $headers = [])
     {
@@ -511,8 +528,9 @@ class Excel extends \yii\base\Widget
      */
     public function formatter()
     {
-        if (!isset($this->formatter))
+        if (!isset($this->formatter)){
             $this->formatter = \Yii::$app->getFormatter();
+        }
 
         return $this->formatter;
     }
@@ -533,11 +551,12 @@ class Excel extends \yii\base\Widget
      */
     public function getFileName()
     {
-        $fileName = 'exports.xls';
+        $fileName = 'exports'.$this->ext;
         if (isset($this->fileName)) {
             $fileName = $this->fileName;
-            if (strpos($fileName, '.xls') === false)
-                $fileName .= '.xls';
+            if (strpos($fileName, $this->ext) === false){
+                $fileName .= $this->ext;
+            }
         }
         return $fileName;
     }
@@ -558,15 +577,19 @@ class Excel extends \yii\base\Widget
 
     /**
      * saving the xls file to download or to path
+     * @param $sheet
      */
     public function writeFile($sheet)
     {
-        if (!isset($this->format))
-            $this->format = 'Excel2007';
         $objectwriter = \PHPExcel_IOFactory::createWriter($sheet, $this->format);
+        var_dump($objectwriter);
+        exit();
         $path = 'php://output';
         if (isset($this->savePath) && $this->savePath != null) {
-            $path = $this->savePath . '/' . $this->getFileName();
+            if(!file_exists($this->savePath . '/excel/')){
+                mkdir($this->savePath . '/excel/');
+            }
+            $path = $this->savePath . '/excel/' . $this->getFileName();
         }
         $objectwriter->save($path);
         exit();
@@ -574,6 +597,8 @@ class Excel extends \yii\base\Widget
 
     /**
      * reading the xls file
+     * @param $fileName
+     * @return array
      */
     public function readFile($fileName)
     {
@@ -688,6 +713,79 @@ class Excel extends \yii\base\Widget
                 return $this->readFile($this->fileName);
             }
         }
+        elseif ($this->mode == 'fputcsv')
+        {
+            if ($this->asAttachment) {
+                $this->setHeaders();
+            }
+
+            $pagePath = 1;
+            $path = $this->getSavePath($pagePath);
+            $this->setFputcsv($path);
+            foreach ($this->models as $key => $models) {
+                // Get data for each column
+                foreach ($this->columns as $row){
+                    $line[] = isset($models[$row]) ? $models[$row] : "";
+                }
+
+                // Determine whether split is needed
+                if($this->limit && ($key + 1) % $this->limit == 0){
+                    $this->setFputcsv();
+                }
+
+                // Gets the new export object
+                if(!$this->out){
+                    $pagePath = $pagePath + 1;
+                    $path = $this->getSavePath($pagePath);
+                    $this->setFputcsv($path);
+                }
+
+                fputcsv($this->out, $line);
+                unset($line);
+            }
+            $this->setFputcsv();
+        }
+    }
+
+    /**
+     * set csv action.
+     * @param string $path
+     */
+    public function setFputcsv($path='')
+    {
+        if($this->out){
+            fclose($this->out);
+            $this->out = false;
+        }
+
+        if($path){
+            $out = fopen($path, 'w');
+            fputcsv($out, array_values($this->headers));
+            $this->out = $out;
+        }
+    }
+
+    /**
+     * Get the file save path
+     * @param string $pagePath
+     * @return string
+     */
+    public function getSavePath($pagePath = '')
+    {
+        $savePath = 'php://output';
+        if (isset($this->savePath) && $this->savePath != null) {
+            $path = $this->savePath . '/excel/'. date('Y-m-d', time()) . '/';
+
+            if(!file_exists($path)){
+                mkdir($path);
+            }
+
+            if(!empty($pagePath)){
+                $pagePath = $pagePath . '_';
+            }
+            $savePath = $path . $pagePath . $this->getFileName();
+        }
+        return $savePath;
     }
 
     /**
