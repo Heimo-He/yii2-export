@@ -291,6 +291,7 @@ class Pdf extends Component
             $this->marginFooter,
             $this->orientation
         );
+        $this->_mpdf->AddFont();
     }
 
     /**
