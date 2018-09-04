@@ -14,7 +14,7 @@
   ],
   "homepage": "https://github.com/riskivy/yii2-export",
   "type": "yii2-extension",
-  "license": "BSD 3-Clause",
+  "license": "RYE-1.1",
   "authors": [
     {
       "name": "Riskivy Visweswaran",
