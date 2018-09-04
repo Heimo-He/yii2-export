@@ -23,7 +23,7 @@
     }
   ],
   "require": {
-    "mpdf/mpdf": "*",
+    "mpdf/mpdf": ">7.0",
     "phpoffice/phpexcel": "*"
   },
   "autoload": {
