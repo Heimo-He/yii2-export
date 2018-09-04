@@ -14,7 +14,7 @@
   ],
   "homepage": "https://github.com/riskivy/yii2-export",
   "type": "yii2-extension",
-  "license": "RYE-1.1",
+  "license": ["GPL-2.0-only"],
   "authors": [
     {
       "name": "Riskivy Visweswaran",
